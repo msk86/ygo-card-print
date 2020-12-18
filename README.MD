@@ -1,6 +1,6 @@
 # RUN
 
-1. update your `cards.cdb` to latest
+1. update your `resources/cards.cdb` to latest
 2. move ydk file to `resources/deck/` (`test-deck.ydk` as example)
 3. run `node index.js test-deck`
 4. checkout the images in `output/test-deck`
