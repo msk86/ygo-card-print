@@ -1,5 +1,6 @@
 const { CardNode } = require('ygo-card');
 const sqlite3 = require('sqlite3');
+const { createCanvas, loadImage } = require('canvas');
 const fs = require('fs')
 const { Card } = CardNode;
 
@@ -30,6 +31,7 @@ function renderCanvasToFile(canvas, id, name, ydkFile, resolve) {
 }
 
 function searchForCardsById(ids) {
+    console.log(`query cards info from ./resources/cards.cdb`);
     return new Promise(function (resolve) {
         const cardsDb = new sqlite3.Database('./resources/cards.cdb');
         cardsDb.serialize(function() {
@@ -252,6 +254,7 @@ function notExist(cards, ids) {
 }
 
 function readYdk(ydkFile) {
+    console.log(`load ./resources/deck/${ydkFile}.ydk`)
     const path = `./resources/deck/${ydkFile}.ydk`;
     const ydk = fs.readFileSync(path).toString();
     const idsWithDummy = ydk.split(/\r?\n/);
@@ -264,20 +267,55 @@ function readYdk(ydkFile) {
     return ids;
 }
 
-function clearDeckOutput(ydkFile) {
+async function createPDF(ydkFile, cards, notCreated) {
+    console.log(`start to generate ${ydkFile}.pdf...`);
+    const PER_ROW = 3;
+    const PER_PAGE = 9;
+    const CARD_W = 697, CARD_H = 1016;
+    const INIT_X = 193, INIT_Y = 229;
+    const pdfCanvas = createCanvas(2480, 3508, 'pdf'); //210 297  // 59x86  //697x1016
+    const ctx = pdfCanvas.getContext('2d');
+    for (const i in cards) {
+        if(i != 0 && i % PER_PAGE === 0 && i !== cards.length - 1) {
+            await ctx.addPage();
+        }
+        const card = cards[i];
+        if (notCreated.includes(card)) continue;
+        const cardImg = await loadImage(`./output/${ydkFile}/${card}.jpg`);
+        const x = (i % PER_PAGE) % PER_ROW, y = Math.floor((i % PER_PAGE) / PER_ROW);
+        ctx.drawImage(cardImg, INIT_X + x * (CARD_W + 1), INIT_Y + y * (CARD_H + 1), CARD_W, CARD_H);
+
+    }
+
+    return new Promise(function(resolve) {
+        const out = fs.createWriteStream(__dirname + `/output/${ydkFile}.pdf`);
+        const stream = pdfCanvas.createPDFStream();
+        stream.pipe(out);
+        out.on('finish', () =>  {console.log(`${ydkFile}.pdf was created.`);resolve();});
+    });
+}
+
+function preClearImageOutput(ydkFile) {
+    console.log(`clean /output/${ydkFile}/`);
     fs.rmdirSync(`./output/${ydkFile}/`, {recursive: true});
     fs.mkdirSync(`./output/${ydkFile}/`, {recursive: true});
 }
 
+function postClearImageOutput(ydkFile) {
+    console.log(`clean /output/${ydkFile}/`);
+    fs.rmdirSync(`./output/${ydkFile}/`, {recursive: true});
+}
+
 async function run(ydkFile) {
-    clearDeckOutput(ydkFile);
+    preClearImageOutput(ydkFile);
     const ids = readYdk(ydkFile);
     const cards = await searchForCardsById(ids);
     for (const card of cards) {
         await printCardWithData(card, ydkFile);
     }
-    const notPrinted = notExist(cards, ids);
-    if(notPrinted.length !== 0) console.log(notPrinted, 'not printed!');
+    const notCreated = notExist(cards, ids);
+    await createPDF(ydkFile, ids, notCreated);
+    postClearImageOutput(ydkFile);
 }
 
 run(process.argv[2]);
