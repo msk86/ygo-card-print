@@ -4,18 +4,22 @@ const { createCanvas, loadImage } = require('canvas');
 const fs = require('fs')
 const { Card } = CardNode;
 
-
+const DEFAULT_IMAGE_BASE = 'https://gitee.com/ymssx/pics/raw/master/500';
+const OUTPUT_PATH = './output';
+const YDK_PATH = './resources/deck';
+const MOLD_PATH = './resources/mold';
+const CDB_PATH = './resources/cards.cdb';
 function printCardWithData(data, ydkFile) {
     return new Promise(function(resolve) {
         // console.log(data);
         const id = data._id;
         const name = data.name;
-        let card = new Card({ data, moldPath: './resources/mold/', picPath: `https://gitee.com/ymssx/pics/raw/master/500/${id}.jpg`});
+        let card = new Card({ data, moldPath: `${MOLD_PATH}/`, picPath: `${DEFAULT_IMAGE_BASE}/${id}.jpg`});
         card.render().then((canvas) => {
             renderCanvasToFile(canvas, id, name, ydkFile, resolve);
         }).catch((error) => {
             console.log(`Image for ${id} cannot be found, use local placeholder card image instead...`);
-            card = new Card({ data, moldPath: './resources/mold/', picPath: `./resources/mold/pic.jpg`});
+            card = new Card({ data, moldPath: `${MOLD_PATH}/`, picPath: `${MOLD_PATH}/pic.jpg`});
             card.render().then((canvas) => {
                 renderCanvasToFile(canvas, id, name, ydkFile, resolve);
             });
@@ -24,16 +28,16 @@ function printCardWithData(data, ydkFile) {
 }
 
 function renderCanvasToFile(canvas, id, name, ydkFile, resolve) {
-    const out = fs.createWriteStream(__dirname + `/output/${ydkFile}/${id}.jpg`);
+    const out = fs.createWriteStream(`${OUTPUT_PATH}/${ydkFile}/${id}.jpg`);
     const stream = canvas.createJPEGStream();
     stream.pipe(out);
     out.on('finish', () =>  {console.log(`${name}(${id}.jpg) was created.`); resolve();});
 }
 
 function searchForCardsById(ids) {
-    console.log(`query cards info from ./resources/cards.cdb`);
+    console.log(`query cards info from ${CDB_PATH}`);
     return new Promise(function (resolve) {
-        const cardsDb = new sqlite3.Database('./resources/cards.cdb');
+        const cardsDb = new sqlite3.Database(CDB_PATH);
         cardsDb.serialize(function() {
             var data = [];
             cardsDb.each(`SELECT t.id, t.name, d.type, d.atk, d.def, d.level, t.desc, d.race, d.attribute FROM texts t, datas d where t.id = d.id and t.id in (${ids.join(', ')})`, function (err, row) {
@@ -254,8 +258,8 @@ function notExist(cards, ids) {
 }
 
 function readYdk(ydkFile) {
-    console.log(`load ./resources/deck/${ydkFile}.ydk`)
-    const path = `./resources/deck/${ydkFile}.ydk`;
+    console.log(`load ${YDK_PATH}/${ydkFile}.ydk`)
+    const path = `${YDK_PATH}/${ydkFile}.ydk`;
     const ydk = fs.readFileSync(path).toString();
     const idsWithDummy = ydk.split(/\r?\n/);
     const ids = [];
@@ -281,14 +285,14 @@ async function createPDF(ydkFile, cards, notCreated) {
         }
         const card = cards[i];
         if (notCreated.includes(card)) continue;
-        const cardImg = await loadImage(`./output/${ydkFile}/${card}.jpg`);
+        const cardImg = await loadImage(`${OUTPUT_PATH}/${ydkFile}/${card}.jpg`);
         const x = (i % PER_PAGE) % PER_ROW, y = Math.floor((i % PER_PAGE) / PER_ROW);
         ctx.drawImage(cardImg, INIT_X + x * (CARD_W + 1), INIT_Y + y * (CARD_H + 1), CARD_W, CARD_H);
 
     }
 
     return new Promise(function(resolve) {
-        const out = fs.createWriteStream(__dirname + `/output/${ydkFile}.pdf`);
+        const out = fs.createWriteStream(`${OUTPUT_PATH}/${ydkFile}.pdf`);
         const stream = pdfCanvas.createPDFStream();
         stream.pipe(out);
         out.on('finish', () =>  {console.log(`${ydkFile}.pdf was created.`);resolve();});
@@ -296,14 +300,14 @@ async function createPDF(ydkFile, cards, notCreated) {
 }
 
 function preClearImageOutput(ydkFile) {
-    console.log(`clean /output/${ydkFile}/`);
-    fs.rmdirSync(`./output/${ydkFile}/`, {recursive: true});
-    fs.mkdirSync(`./output/${ydkFile}/`, {recursive: true});
+    console.log(`clean ${OUTPUT_PATH}/${ydkFile}/`);
+    fs.rmdirSync(`${OUTPUT_PATH}/${ydkFile}/`, {recursive: true});
+    fs.mkdirSync(`${OUTPUT_PATH}/${ydkFile}/`, {recursive: true});
 }
 
 function postClearImageOutput(ydkFile) {
-    console.log(`clean /output/${ydkFile}/`);
-    fs.rmdirSync(`./output/${ydkFile}/`, {recursive: true});
+    console.log(`clean ${OUTPUT_PATH}/${ydkFile}/`);
+    fs.rmdirSync(`${OUTPUT_PATH}/${ydkFile}/`, {recursive: true});
 }
 
 async function run(ydkFile) {
