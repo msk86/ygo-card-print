@@ -232,7 +232,7 @@ function formatLink(types, linkInt) {
 function formatPendulum(types, desc) {
     let pendulum = {};
     if(types.type3 === 'lb') {
-        const descSplit = desc.split('\r\n【怪兽效果】\r\n');
+        const descSplit = desc.includes('【怪兽效果】') ? desc.split('\r\n【怪兽效果】\r\n') : desc.split('\r\n【怪兽描述】\r\n');
         pendulum.lb_desc = descSplit[0].replace(/^.*?\r\n/g, '');
         pendulum.lb_num = +descSplit[0].match(/^←(\d+) 【灵摆】/)[1];
         pendulum.desc = descSplit[1];
