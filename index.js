@@ -5,7 +5,7 @@ const { Card, renderDeckPDF, getMultiData } = CardNode;
 const DEFAULT_IMAGE_BASE = 'https://gitee.com/ymssx/pics/raw/master/500';
 const OUTPUT_PATH = './output';
 const YDK_PATH = './resources/deck';
-const MOLD_PATH = './resources/mold';
+const MOLD_PATH = './node_modules/ygo-card/dist/mold';
 const CDB_PATH = './resources/cards.cdb';
 
 function notExist(cards, ids) {
