@@ -2,7 +2,7 @@ const { CardNode } = require('ygo-card');
 const fs = require('fs');
 const { Card, renderDeckPDF, getMultiData } = CardNode;
 
-const DEFAULT_IMAGE_BASE = 'https://gitee.com/ymssx/pics/raw/master/500';
+const DEFAULT_IMAGE_BASE = 'https://gitee.com/msk86/pics/raw/master/500';
 const OUTPUT_PATH = './output';
 const YDK_PATH = './resources/deck';
 const MOLD_PATH = './node_modules/ygo-card/dist/mold';
