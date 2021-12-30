@@ -6,7 +6,7 @@ const DEFAULT_IMAGE_BASE = 'https://gitee.com/msk86/pics/raw/master/500';
 const OUTPUT_PATH = './output';
 const YDK_PATH = './resources/deck';
 const MOLD_PATH = './node_modules/ygo-card/dist/mold';
-const CDB_PATH = './resources/cards.cdb';
+const CDB_PATH = './resources/cards-${lang}.cdb';
 
 function notExist(cards, ids) {
     return cards.map((c, i) => !c ? i : null).filter(i=> i).map(i => ids[i]);
@@ -31,21 +31,23 @@ function renderPdfCanvasToFile(canvas, file) {
     });
 }
 
-async function run(ydkFile) {
+async function run(ydkFile, lang = 'cn') {
     const ids = readYdk(ydkFile);
     // const ids = [63288573,1482001,3507053,30691817,13143275,24842059,77307161,23689428, 1];
-    const proCards = await getMultiData(CDB_PATH, ids);
+    const cdb = CDB_PATH.replace('${lang}', lang);
+    const proCards = await getMultiData(cdb, ids);
     const cards = proCards
         .filter(data => data)
         .map(data => new Card({
             data: Card.transData(data),
+            lang: lang,
             moldPath: `${MOLD_PATH}/`, 
             picPath: `${DEFAULT_IMAGE_BASE}/${data.id}.jpg`
         }));
     const pdfCanvas = await renderDeckPDF(cards);
-    renderPdfCanvasToFile(pdfCanvas, `${OUTPUT_PATH}/${ydkFile}.pdf`);
+    renderPdfCanvasToFile(pdfCanvas, `${OUTPUT_PATH}/${ydkFile}-${lang}.pdf`);
     const notCreated = notExist(proCards, ids);
     if(notCreated.length) console.log(notCreated, 'not created');
 }
 
-run(process.argv[2]);
+run(process.argv[2], process.argv[3]);
