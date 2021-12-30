@@ -43,7 +43,6 @@ async function run(ydkFile, lang = 'cn') {
     const proCards = await getMultiData(cdb, ids);
     const cards = proCards
         .filter(data => data)
-        .map(data => ({...data, desc: data.desc.replace(/\r?\n/g, '')}))
         .map(data => new Card({
             data: Card.transData(data),
             lang: lang,
