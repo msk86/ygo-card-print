@@ -8,6 +8,10 @@ const YDK_PATH = './resources/deck';
 const MOLD_PATH = './node_modules/ygo-card/dist/mold';
 const CDB_PATH = './resources/cards-${lang}.cdb';
 
+function cdbExist(cdb) {
+    return fs.existsSync(cdb);
+}
+
 function notExist(cards, ids) {
     return cards.map((c, i) => !c ? i : null).filter(i=> i).map(i => ids[i]);
 }
@@ -32,9 +36,10 @@ function renderPdfCanvasToFile(canvas, file) {
 }
 
 async function run(ydkFile, lang = 'cn') {
+    const cdb = CDB_PATH.replace('${lang}', lang);
+    if(!cdbExist(cdb)) {return console.log('card database is not exist.');}
     const ids = readYdk(ydkFile);
     // const ids = [63288573,1482001,3507053,30691817,13143275,24842059,77307161,23689428, 1];
-    const cdb = CDB_PATH.replace('${lang}', lang);
     const proCards = await getMultiData(cdb, ids);
     const cards = proCards
         .filter(data => data)
