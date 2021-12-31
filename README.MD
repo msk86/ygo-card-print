@@ -4,8 +4,11 @@
 1. update your `resources/cards.cdb` to latest
 2. move ydk file to `resources/deck/` (`test-deck.ydk` as example)
 3. run `npm install`
-4. run `node index.js test-deck`
-5. checkout the pdf in `output/test-deck.pdf`
+   * for Chinese user, you can try to use `cnpm` or `yarn` to install the package
+   * to use cnpm: `npm install cnpm --global` then run `cnpm install` instead of running `npm install`
+   * to use yarn: `npm install yarn --global` then run `yarn install` instead of running `npm install`
+5. run `node index.js test-deck`
+6. checkout the pdf in `output/test-deck.pdf`
 
 # Multilingual
 
