@@ -1,6 +1,5 @@
-const { CardNode } = require('ygo-card');
+const { CardNode, renderDeckPDF, getMultiData } = require('ygo-card');
 const fs = require('fs');
-const { Card, renderDeckPDF, getMultiData } = CardNode;
 
 const DEFAULT_IMAGE_BASE = 'https://gitee.com/msk86/pics/raw/master/500';
 const OUTPUT_PATH = './output';
@@ -43,8 +42,8 @@ async function run(ydkFile, lang = 'cn') {
     const proCards = await getMultiData(cdb, ids);
     const cards = proCards
         .filter(data => data)
-        .map(data => new Card({
-            data: Card.transData(data),
+        .map(data => new CardNode({
+            data: CardNode.transData(data),
             lang: lang,
             moldPath: `${MOLD_PATH}/`, 
             picPath: `${DEFAULT_IMAGE_BASE}/${data.id}.jpg`
