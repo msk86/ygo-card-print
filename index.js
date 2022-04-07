@@ -30,7 +30,7 @@ function renderPdfCanvasToFile(canvas, file) {
         const stream = canvas.createPDFStream();
         stream.pipe(out);
         out.on('finish', () => {console.log(`${file} was created`);resolve();});
-        out.on('error', () => {console.log(`fail to create ${file}`, error);reject(error);});
+        out.on('error', (error) => {console.log(`fail to create ${file}`, error); reject(error);});
     });
 }
 
